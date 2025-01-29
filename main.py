@@ -1,31 +1,32 @@
-import sys
-from db_handler import fetch_data
+from db_handler import group_orders_by_invoice
 from invoice_generator import generate_invoice_files
 from blob_handler import upload_files_to_blob
 
-def main(query):
-    # Fetch data from the database
-    data = fetch_data(query)
-    if not data:
-        print("Failed to fetch data from the database.")
+def main():
+    """
+    Main function to fetch data, generate invoices, and upload to Azure Blob Storage.
+    """
+    # Fetch and group order details
+    orders = group_orders_by_invoice()
+    
+    if not orders:
+        print("⚠️ No orders found. Exiting.")
         return
 
     # Generate XML and PDF invoices
-    invoice_files = generate_invoice_files(data)
+    invoice_files = generate_invoice_files()
+    
+    if not invoice_files:
+        print("⚠️ No invoices were generated. Exiting.")
+        return
 
-    # Upload files to Azure Blob Storage
+    # # Upload invoices to Azure Blob Storage
     upload_success = upload_files_to_blob(invoice_files)
+    
     if upload_success:
-        print("Files successfully uploaded to Azure Blob Storage.")
+        print("✅ Files successfully uploaded to Azure Blob Storage.")
     else:
-        print("Failed to upload files to Azure Blob Storage.")
+        print("⚠️ Failed to upload files to Azure Blob Storage.")
 
 if __name__ == "__main__":
-    # Ensure a query is provided as an argument
-    if len(sys.argv) < 2:
-        print("Usage: python main.py '<SQL_QUERY>'")
-        sys.exit(1)
-
-    # Pass the query to main()
-    query = sys.argv[1]
-    main(query)
+    main()

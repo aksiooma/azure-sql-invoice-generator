@@ -43,7 +43,8 @@ This integration system will:
     - Use WSL to create a Python virtual environment for integration development.
 
 2. **Validate Access:**
-   - Test connectivity to Azure SQL Database using `pyodbc`.
+   - Test connectivity to Azure SQL Database using `pyodbc`. Did not work with pyodbc.
+   - Test connectivity to Azure SQL Database using `pymssql`. Changing to pymssql worked.
    - Test file upload to Azure Blob Storage using `azure-storage-blob`.
    
 3. **Start Coding:**
@@ -52,9 +53,9 @@ This integration system will:
 ---
 
 ## Progress Tracking
-- [ ] Validate SQL Database credentials.
-- [ ] Validate Blob Storage credentials.
-- [ ] Ensure dependencies and project setup are complete.
+- [X] Validate SQL Database credentials.
+- [x] Validate Blob Storage credentials.
+- [X] Ensure dependencies and project setup are complete.
 
 # Integration Script
 
@@ -70,42 +71,47 @@ The integration will be implemented in five stages:
 
 ## Current Status:
 
-  - Database Connection: Failed to establish a connection to the Azure SQL Database due to a HYT00 login timeout error.
-  - Blob Storage: Blob storage connectivity has not been tested due to the failed connection.
-  - Code Testing: Not completed due to database connection failure.
+  - Database Connection: establishe a connection to the Azure SQL Database after a HYT00 login timeout error.
+  - Blob Storage: Blob storage connectivity has been tested and working
+  - Code Testing: Manually tested. No automation.
 
 ## Next Steps
-  - Resolve the database connection issue (HYT00 timeout).
-  - Test each module (db_handler.py, invoice_generator.py, blob_handler.py) independently to verify functionality.
+  - Resolve the database connection issue (HYT00 timeout). [✅FIXED]
+  - Test each module (db_handler.py, invoice_generator.py, blob_handler.py) independently to verify functionality. [TESTED_MANUALLY]
   - Integrate the modules and run end-to-end tests.
-  - Document the final integration process.
+  - Document the final integration process. [✅]
 
-### **Integration Flow Summary**
+### **✅ Updated Integration Flow Summary**
 
-1. **Database Connection**:
-   - Connect to the company's Azure SQL Database to fetch data from the tables: `Customers`, `Orders`, `OrderLines`, and `Products`.
+#### **1. Database Connection**
+- **Switched from `pyodbc` to `pymssql`** for connecting to Azure SQL Database.
+- Fetch data from the tables: `customers`, `orders`, `orderLines`, and `products`.
 
-2. **Data Fetching**:
-   - Extract customer, order, and product information by joining the database tables.
+#### **2. Data Fetching**
+- Extract detailed order data, including **customer info, products, quantities, and prices**.
+- Ensure correct field mapping based on the actual database schema.
 
-3. **Invoice Generation**:
-   - Create invoice files in **XML** and **PDF** formats using the fetched data.
-   - Name files as `[Firstname]_[Surname]_[BillableCompany]_Invoice.xml/pdf`.
+#### **3. Invoice Generation**
+- **Generate invoices in XML & PDF** formats using `lxml` and `reportlab`.
+- **Include key details**: Order ID, Due Date, Creation Date, Customer & Billing Info.
+- **File Naming Convention**:  
 
-4. **File Upload**:
-   - Upload the generated invoice files to Azure Blob Storage for third-party processing.
+#### **4. File Upload**
+- **Switched to SAS URL authentication** for **Azure Blob Storage**.
+- Use `BlobServiceClient(account_url=sas_url)` instead of a connection string.
+- **Ensure correct filenames** and **overwrite existing files if needed**.
 
-This flow automates the entire process of fetching data, generating invoices, and uploading them for further use.
+This integration **automates the entire process** of fetching data, generating invoices, and uploading them for further use. 🚀
 
 
 ### Yhteenveto:
 
 1. **Tietokantayhteys**:
-   - Yhdistetään yrityksen Azure SQL -tietokantaan ja haetaan tiedot seuraavista tauluista: `Customers`, `Orders`, `OrderLines` ja `Products`. Epäonnistuin luomaan yhteyden aikamääreessä.
+   - Yhdistetään yrityksen Azure SQL -tietokantaan ja haetaan tiedot seuraavista tauluista: `Customers`, `Orders`, `OrderLines` ja `Products`.
 
 2. **Tietojen haku**:
    - Poimitaan asiakkaiden, tilausten ja tuotteiden tiedot yhdistämällä taulut. 
-   - python main.py "SELECT * FROM orders"
+   - python main.py "SELECT * FROM orders" suorittaa skriptin
 
 3. **Laskujen generointi**:
    - Luodaan laskutiedostot **XML**- ja **PDF**-muodoissa haettujen tietojen perusteella.

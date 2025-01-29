@@ -1,0 +1,5 @@
+pymssql==2.2.10  # For connecting to Azure SQL Database
+azure-storage-blob==12.16.0  # For uploading files to Azure Blob Storage
+lxml==4.9.3  # For XML generation
+reportlab==3.6.13  # For generating PDF invoices
+python-dotenv==1.0.0  # For loading environment variables
