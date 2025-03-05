@@ -1,11 +1,17 @@
 import pymssql
 import os
+from config import load_config
 
-# Load database connection info from environment variables
-server = os.getenv("DB_SERVER")
-database = os.getenv("DB_NAME")
-username = os.getenv("DB_USER")
-password = os.getenv("DB_PASSWORD")
+# Lataa asetukset
+config = load_config()
+if not config:
+    raise Exception("Asetukset puuttuvat!")
+
+# Käytä asetuksia
+server = config["DB_SERVER"]
+database = config["DB_NAME"]
+username = config["DB_USER"]
+password = config["DB_PASSWORD"]
 
 print("DB_SERVER:", server)
 print("DB_NAME:", database)

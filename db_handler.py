@@ -2,15 +2,20 @@ import pymssql
 import os
 from collections import defaultdict
 from dotenv import load_dotenv
+from config import load_config
+
+# Lataa asetukset
+config = load_config()
+if not config:
+    raise Exception("Asetukset puuttuvat!")
+
+# Käytä asetuksia
+server = config["DB_SERVER"]
+database = config["DB_NAME"]
+username = config["DB_USER"]
+password = config["DB_PASSWORD"]
 
 load_dotenv()
-
-# OS environment variables. Change to dotenv the os.getenv is not used.
-server = os.getenv("DB_SERVER")
-database = os.getenv("DB_NAME")
-username = os.getenv("DB_USER")
-password = os.getenv("DB_PASSWORD")
-
 
 def fetch_data(query):
     """

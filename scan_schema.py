@@ -1,13 +1,20 @@
-import pymssql
 import os
 import json
+import pymssql
 from typing import Dict, List, Tuple
+from dotenv import load_dotenv
+from config import load_config
 
-# ✅ Load Database Connection Info
-server = os.getenv("DB_SERVER")
-database = os.getenv("DB_NAME")
-username = os.getenv("DB_USER")
-password = os.getenv("DB_PASSWORD")
+# Lataa asetukset
+config = load_config()
+if not config:
+    raise Exception("Asetukset puuttuvat!")
+
+# Käytä asetuksia
+server = config["DB_SERVER"]
+database = config["DB_NAME"]
+username = config["DB_USER"]
+password = config["DB_PASSWORD"]
 
 def check_database_connection():
     """Tarkista tietokantayhteyden tila ja palauta virheilmoitus."""
@@ -212,28 +219,27 @@ def generate_sql_query(field_locations: Dict, table_relationships: Dict) -> str:
     ]
 
     # Kokoa kysely
+    select_clause = ",\n    ".join(select_parts)
+    join_clause = "\n".join(joins)
+    
     query = f"""SELECT
-    {',\\n    '.join(select_parts)}
+    {select_clause}
 FROM SalesLT.SalesOrderHeader
-{chr(10).join(joins)}
+{join_clause}
 ORDER BY SalesLT.SalesOrderHeader.SalesOrderID;"""
 
     return query
 
 def main():
-    if not all([server, database, username, password]):
-        print("""
-⚠️ Ympäristömuuttujat puuttuvat!
-Varmista että seuraavat muuttujat on asetettu:
-- DB_SERVER
-- DB_NAME
-- DB_USER
-- DB_PASSWORD
-""")
+    print("🔍 Skannataan tietokantarakennetta...")
+    columns, relationships = scan_database_structure()
+    
+    if not columns or not relationships:
+        print("⚠️ Tietokantarakennetta ei voitu lukea!")
         return
 
-    # Määritä vaaditut kentät
-    required_fields = {
+    print("🔍 Etsitään tarvittavia kenttiä...")
+    field_locations, table_relationships = find_required_tables(columns, relationships, {
         "ORDER_ID": "SalesOrderID",
         "CUSTOMER_ID": "CustomerID",
         "CUSTOMER_NAME": "CompanyName",
@@ -245,17 +251,7 @@ Varmista että seuraavat muuttujat on asetettu:
         "QUANTITY": "OrderQty",
         "UNIT_PRICE": "UnitPrice",
         "CUSTOMER_ADDRESS": "AddressID"
-    }
-
-    print("🔍 Skannataan tietokantarakennetta...")
-    columns, relationships = scan_database_structure()
-    
-    if not columns or not relationships:
-        print("⚠️ Tietokantarakennetta ei voitu lukea!")
-        return
-
-    print("🔍 Etsitään tarvittavia kenttiä...")
-    field_locations, table_relationships = find_required_tables(columns, relationships, required_fields)
+    })
 
     # Tallenna skeemaraportti debug-tarkoituksiin
     with open("debug_schema.json", "w") as f:
