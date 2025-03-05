@@ -1,8 +1,11 @@
 import pymssql
 import os
 from collections import defaultdict
+from dotenv import load_dotenv
 
-# Environment variables
+load_dotenv()
+
+# OS environment variables. Change to dotenv the os.getenv is not used.
 server = os.getenv("DB_SERVER")
 database = os.getenv("DB_NAME")
 username = os.getenv("DB_USER")
@@ -36,34 +39,32 @@ def fetch_data(query):
     except Exception as e:
         print(f"⚠️ Unexpected error: {e}")
         return None
+    
+def load_invoice_query():
+    query_file = os.getenv("INVOICE_QUERY_FILE")
+    if query_file:
+        with open(query_file, "r") as file:
+            return file.read()
+    return os.getenv("INVOICE_QUERY", "")  # Fallback to .env if no file exists
+    
 
 def fetch_order_details():
     """
-    Fetch detailed order data, including customer, product, and price info.
+    Fetch detailed order data using the dynamically generated SQL query.
     """
-    query = """
-    SELECT 
-        o.orderId,
-        o.customerId,
-        c.name AS customerName,  -- ✅ Fetch customer name correctly
-        c.address AS customerAddress,
-        c.email AS customerEmail,
-        o.dueDate,
-        ol.orderLineId,
-        ol.productId,
-        p.productName,
-        ol.quantity,
-        p.price AS unitPrice,  
-        (ol.quantity * p.price) AS totalPrice  -- ✅ Compute total price correctly
-    FROM orders o
-    JOIN orderLines ol ON o.orderId = ol.orderId  -- ✅ Correct join
-    JOIN products p ON ol.productId = p.productId  -- ✅ Fetch product details
-    JOIN customers c ON o.customerId = c.customerId  -- ✅ Fetch customer details
-    ORDER BY o.orderId;
-    """
-    
-    
-    data = fetch_data(query)
+    base_query = load_invoice_query()
+
+    if not base_query:
+        return None  # If no query, return empty
+
+    print("\n✅ Executing Dynamic Query:\n", base_query)
+
+    try:
+        data = fetch_data(base_query)
+    except Exception as e:
+        print(f"⚠️ Query Execution Failed: {e}")
+        return None
+
     
     if data:
         print("✅ Successfully retrieved order details:")
@@ -75,16 +76,46 @@ def fetch_order_details():
     return data
 
 def group_orders_by_invoice():
-    """Group fetched order details by OrderID to structure invoice data."""
-    order_details = fetch_order_details()
-    orders = defaultdict(list)
+    """
+    Fetch and group order details from database using the generated query.
+    """
+    try:
+        # Lue generoitu SQL-kysely tiedostosta
+        with open("invoice_query.sql", "r") as f:
+            sql_query = f.read()
+        
+        print("\n✅ Käytetään generoitua kyselyä:")
+        print(sql_query)
+        
+        conn = pymssql.connect(
+            server=server,
+            user=f"{username}@{server.split('.')[0]}",
+            password=password,
+            database=database
+        )
+        cursor = conn.cursor(as_dict=True)
+        
+        cursor.execute(sql_query)
+        orders = cursor.fetchall()
+        
+        if not orders:
+            print("⚠️ Tilauksia ei löytynyt.")
+            return None
+            
+        # Ryhmittele tilaukset ORDER_ID:n mukaan
+        grouped_orders = {}
+        for order in orders:
+            order_id = order['ORDER_ID']
+            if order_id not in grouped_orders:
+                grouped_orders[order_id] = []
+            grouped_orders[order_id].append(order)
+            
+        conn.close()
+        return grouped_orders
 
-    if not order_details:
-        print("⚠️ No orders found.")
+    except pymssql.Error as e:
+        print(f"⚠️ Tietokantavirhe: {e}")
         return None
-
-    for row in order_details:
-        order_id = row['orderId']
-        orders[order_id].append(row)
-
-    return orders
+    except Exception as e:
+        print(f"⚠️ Odottamaton virhe: {e}")
+        return None

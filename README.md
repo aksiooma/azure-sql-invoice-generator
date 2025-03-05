@@ -6,9 +6,52 @@ Tämä projekti automatisoi **laskujen luomisen ja tallentamisen pilveen** seura
 2. **Generoidaan laskut XML- ja PDF-muodossa**  
 3. **Lähetetään laskut Azure Blob Storageen** kolmannen osapuolen käyttöön  
 
-Teknologiat: **Python, pymssql, lxml, reportlab, Azure Blob Storage**
+## Teknologiat
+
+- Python 3.x
+- Azure SQL Database
+- Azure Blob Storage
+- pymssql
+- reportlab (PDF-generointiin)
+- lxml (XML-käsittelyyn)
 
 ---
+
+## Vaatimukset
+
+### Azure-ympäristö
+Tämä integraatiosovellus vaatii toimivan Azure-ympäristön seuraavilla palveluilla:
+
+1. **Azure SQL Database**
+   - Aktiivinen Azure-tilaus
+   - Toimiva SQL Database -instanssi
+   - Tietokannassa tulee olla seuraavat taulut:
+     - SalesLT.SalesOrderHeader
+     - SalesLT.Customer
+     - SalesLT.CustomerAddress
+     - SalesLT.SalesOrderDetail
+     - SalesLT.Product
+
+2. **Azure Blob Storage**
+   - Storage Account
+   - Container laskujen tallennusta varten
+   - SAS-token tai yhteysosoite kirjoitusoikeuksilla
+
+### Käyttöoikeudet
+- SQL Database: db_datareader -oikeudet
+- Blob Storage: kirjoitusoikeudet containeriin
+
+## Asennus ja konfigurointi
+
+### 1. Azure-ympäristön pystytys
+1. Luo Azure-tilaus jos ei ole
+2. Pystytä SQL Database
+   ```sql
+   -- Esimerkki tarvittavasta tietokantarakenteesta
+   -- Katso schema.sql tiedosto
+   ```
+3. Luo Storage Account ja container
+4. Generoi tarvittavat tunnukset ja SAS-tokenit
 
 # 🚀 Käyttöönotto
 
@@ -41,7 +84,18 @@ integration-project/
 
 ## 3️⃣ Suorita integraatio
 
-- ```python main.py "SELECT * FROM orders"```
+## Käyttö
+
+1. Aseta ympäristömuuttujat (.env tiedostossa)
+2. Generoi SQL-kysely:
+```bash
+python scan_schema.py
+```
+3. Aja pääohjelma:
+```bash
+python main.py
+```
+
 
 ## **Integraatioprojektin Esittely**
 
@@ -52,7 +106,7 @@ integration-project/
   - Tilausten käsittelyn ja laskujen generoinnin testausta.
 - Jos kaikki toiminnot toimisivat, seuraava vaihe olisi rakentaa käyttäjäystävällinen UI.
 
-### **Docker ja Ympäristöhaasteet**
+### **Ympäristöhaasteet**
 - Dockerin käyttöä harkittiin kehitysympäristön yhdenmukaistamiseksi, mutta asennuksen aikana ilmeni ongelmia:
   - ODBC-ajurien asentaminen WSL:ssä ei toiminut odotetusti.
   - Azure SQL -yhteyden luonti ei onnistunut helposti.
@@ -75,9 +129,12 @@ integration-project/
    - Generoidut laskut siirretään **Azure Blob Storageen SAS-avaimen kautta**.
 
 ### **Kiteytys**
-- **Python tarjosi joustavan alustan** integraation toteuttamiselle ja testaamiselle.  
-- **Dockerin käyttöönotto ei onnistunut**, joten siirryttiin suoraan Python-ympäristöön.  
+- **Python tarjosi joustavan alustan** integraation toteuttamiselle ja testaamiselle.   
 - Toteutus sisältää **tietokantayhteyden, laskujen generoinnin ja pilvitallennuksen**.  
 - **Seuraavat vaiheet:**  
   - SQL-yhteyden optimointi ja virheenkäsittely.  
   - Toiminnallisuuden laajentaminen ja testaus.  
+
+## Lisenssi
+
+MIT License

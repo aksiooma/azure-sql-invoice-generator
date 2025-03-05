@@ -8,6 +8,7 @@ __pycache__/
 # Ignore environment variables file
 .env
 
+
 # Ignore other system-specific files
 *.pyc
 *.pyo
@@ -16,3 +17,45 @@ __pycache__/
 
 # Ignore macOS system files (if applicable)
 .DS_Store
+
+#Ignore
+field_mappings.txt
+schema_report.txt
+debug_schema.json
+report.md
+
+# Generoidut tiedostot
+invoices/
+output_files/
+*.pdf
+*.xml
+debug_schema.json
+invoice_query.sql
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE-tiedostot
+.idea/
+.vscode/
+*.swp
+*.swo
